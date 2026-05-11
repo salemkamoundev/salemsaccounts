@@ -1,8 +1,10 @@
-/* Remplacez les anciens @tailwind par : */
 @import "tailwindcss";
+@source "./app";
 
-/* Si vous aviez des couleurs ou polices personnalisées dans tailwind.config.js, 
-   elles se configurent désormais ici avec la directive @theme. Par exemple : */
-@theme {
-  --color-primary: #1d4ed8;
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #f9fafb;
 }

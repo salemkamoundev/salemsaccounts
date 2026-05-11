@@ -1,16 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { 
-  Firestore, 
-  collection, 
-  collectionData, 
-  doc, 
-  docData, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc,
-  query,
-  where
-} from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, docData, addDoc, updateDoc, deleteDoc, query, where } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { Product } from '../models/product.model';
 
@@ -18,39 +7,36 @@ import { Product } from '../models/product.model';
   providedIn: 'root'
 })
 export class ProductService {
+  // ✅ CORRECTION : Injection au niveau de la classe
   private firestore = inject(Firestore);
-  private productsCollection = collection(this.firestore, 'products');
 
-  // Récupérer tous les produits
   getProducts(): Observable<Product[]> {
-    return collectionData(this.productsCollection, { idField: 'id' }) as Observable<Product[]>;
+    const productsRef = collection(this.firestore, 'products');
+    return collectionData(productsRef, { idField: 'id' }) as Observable<Product[]>;
   }
 
-  // Récupérer les produits d'une catégorie spécifique
   getProductsByCategory(categoryId: string): Observable<Product[]> {
-    const q = query(this.productsCollection, where('category', '==', categoryId));
+    const productsRef = collection(this.firestore, 'products');
+    const q = query(productsRef, where('category', '==', categoryId));
     return collectionData(q, { idField: 'id' }) as Observable<Product[]>;
   }
 
-  // Récupérer un produit par ID
   getProduct(id: string): Observable<Product> {
     const productDoc = doc(this.firestore, `products/${id}`);
     return docData(productDoc, { idField: 'id' }) as Observable<Product>;
   }
 
-  // Ajouter un produit
-  addProduct(product: Product) {
-    return addDoc(this.productsCollection, product);
+  addProduct(product: Product): Promise<any> {
+    const productsRef = collection(this.firestore, 'products');
+    return addDoc(productsRef, product);
   }
 
-  // Mettre à jour un produit
-  updateProduct(id: string, data: Partial<Product>) {
+  updateProduct(id: string, data: Partial<Product>): Promise<void> {
     const productDoc = doc(this.firestore, `products/${id}`);
     return updateDoc(productDoc, data);
   }
 
-  // Supprimer un produit
-  deleteProduct(id: string) {
+  deleteProduct(id: string): Promise<void> {
     const productDoc = doc(this.firestore, `products/${id}`);
     return deleteDoc(productDoc);
   }
