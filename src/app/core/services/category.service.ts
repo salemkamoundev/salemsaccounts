@@ -26,7 +26,7 @@ export class CategoryService {
 
   // Récupérer une catégorie par ID
   getCategory(id: string): Observable<Category> {
-    const categoryDoc = doc(this.firestore, \`categories/\${id}\`);
+    const categoryDoc = doc(this.firestore, `categories/${id}`);
     return docData(categoryDoc, { idField: 'id' }) as Observable<Category>;
   }
 
@@ -37,13 +37,13 @@ export class CategoryService {
 
   // Mettre à jour une catégorie
   updateCategory(id: string, data: Partial<Category>) {
-    const categoryDoc = doc(this.firestore, \`categories/\${id}\`);
+    const categoryDoc = doc(this.firestore, `categories/${id}`);
     return updateDoc(categoryDoc, data);
   }
 
   // Supprimer une catégorie
   deleteCategory(id: string) {
-    const categoryDoc = doc(this.firestore, \`categories/\${id}\`);
+    const categoryDoc = doc(this.firestore, `categories/${id}`);
     return deleteDoc(categoryDoc);
   }
 }

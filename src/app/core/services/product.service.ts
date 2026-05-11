@@ -34,7 +34,7 @@ export class ProductService {
 
   // Récupérer un produit par ID
   getProduct(id: string): Observable<Product> {
-    const productDoc = doc(this.firestore, \`products/\${id}\`);
+    const productDoc = doc(this.firestore, `products/${id}`);
     return docData(productDoc, { idField: 'id' }) as Observable<Product>;
   }
 
@@ -45,13 +45,13 @@ export class ProductService {
 
   // Mettre à jour un produit
   updateProduct(id: string, data: Partial<Product>) {
-    const productDoc = doc(this.firestore, \`products/\${id}\`);
+    const productDoc = doc(this.firestore, `products/${id}`);
     return updateDoc(productDoc, data);
   }
 
   // Supprimer un produit
   deleteProduct(id: string) {
-    const productDoc = doc(this.firestore, \`products/\${id}\`);
+    const productDoc = doc(this.firestore, `products/${id}`);
     return deleteDoc(productDoc);
   }
 }

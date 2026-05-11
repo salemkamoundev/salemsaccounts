@@ -121,7 +121,7 @@ export class PaymentComponent implements OnInit {
   
   // order.service sera implémenté au prochain prompt
   // Pour le moment on utilise "any" pour éviter une erreur de compilation si on lance le projet avant l'étape 16
-  private orderService = inject(OrderService as any);
+  private orderService = inject(OrderService);
 
   walletAddress = environment.binanceWalletUSDT;
   
