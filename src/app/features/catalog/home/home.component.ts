@@ -30,13 +30,6 @@ import { Category } from '../../../core/models/category.model';
               <a routerLink="/catalog" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl transition-all shadow-lg shadow-blue-600/30">
                 Explorer le catalogue
               </a>
-              <div class="flex items-center gap-3 px-6 py-4 bg-neutral-800 rounded-2xl border border-neutral-700">
-                <span class="flex h-3 w-3 relative">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                </span>
-                <span class="text-sm font-medium text-neutral-300">Plus de 500 comptes livrés</span>
-              </div>
             </div>
           </div>
         </div>
@@ -51,38 +44,9 @@ import { Category } from '../../../core/models/category.model';
         </div>
       </div>
 
-      <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div class="group">
-              <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              </div>
-              <h3 class="text-xl font-bold mb-3">Vitesse Éclair</h3>
-              <p class="text-neutral-500">Notre système automatisé traite vos commandes dès confirmation sur la blockchain.</p>
-            </div>
-            <div class="group">
-              <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-              </div>
-              <h3 class="text-xl font-bold mb-3">Sécurité Crypto</h3>
-              <p class="text-neutral-500">Zéro intermédiaire bancaire. Vos données et vos transactions restent confidentielles.</p>
-            </div>
-            <div class="group">
-              <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-              </div>
-              <h3 class="text-xl font-bold mb-3">Support Expert</h3>
-              <p class="text-neutral-500">Un problème d'activation ? Notre équipe vous répond en moins de 2 heures.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section class="py-20 bg-neutral-50">
         <div class="max-w-7xl mx-auto px-4 text-center mb-16">
           <h2 class="text-4xl font-bold mb-4">Parcourir par service</h2>
-          <p class="text-neutral-500">Sélectionnez la catégorie qui vous intéresse</p>
         </div>
 
         <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -99,7 +63,6 @@ import { Category } from '../../../core/models/category.model';
               </svg>
             </div>
             <h4 class="text-xl font-bold mb-2">{{ cat.name }}</h4>
-            <p class="text-sm text-neutral-400 line-clamp-2">{{ cat.description }}</p>
           </a>
         </div>
       </section>
