@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@source "./app";
+@source ".";
 
 html, body {
   margin: 0;
