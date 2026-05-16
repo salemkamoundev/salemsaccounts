@@ -116,13 +116,12 @@ export class ProductListComponent implements OnInit {
 
   categories$ = this.categoryService.getCategories();
   
-  // BehaviorSubject pour stocker l'ID de la catégorie sélectionnée (null = toutes)
   selectedCategory$ = new BehaviorSubject<string | null>(null);
   
-  // Pipeline réactif : se met à jour automatiquement dès que selectedCategory$ change
   products$: Observable<Product[]> = this.selectedCategory$.pipe(
     switchMap(categoryId => {
-      if (categoryId) {
+      // Sécurité : on ignore si l'ID est vide ou s'il vaut le texte "null"
+      if (categoryId && categoryId !== 'null') {
         return this.productService.getProductsByCategory(categoryId);
       } else {
         return this.productService.getProducts();
@@ -131,20 +130,23 @@ export class ProductListComponent implements OnInit {
   );
 
   ngOnInit() {
-    // Lire les paramètres d'URL au chargement (ex: /catalog?category=xyz)
     this.route.queryParams.subscribe(params => {
-      if (params['category']) {
-        this.selectedCategory$.next(params['category']);
+      const cat = params['category'];
+      // Si une catégorie est présente dans l'URL (et n'est pas le mot "null")
+      if (cat && cat !== 'null') {
+        this.selectedCategory$.next(cat);
+      } else {
+        // Sinon, on s'assure que le bouton "Toutes les catégories" est bien activé
+        this.selectedCategory$.next(null);
       }
     });
   }
 
   selectCategory(categoryId: string | null) {
-    this.selectedCategory$.next(categoryId);
-    // Mettre à jour l'URL sans recharger la page pour que le lien soit partageable
+    // On met à jour l'URL (si categoryId est null, ça l'enlèvera proprement de l'URL)
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { category: categoryId },
+      queryParams: { category: categoryId || null },
       queryParamsHandling: 'merge'
     });
   }

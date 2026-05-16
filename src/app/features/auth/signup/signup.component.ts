@@ -62,14 +62,10 @@ import { AuthService } from '../../../core/services/auth.service';
             </div>
           </div>
 
-          <div class="mt-6 grid grid-cols-2 gap-3">
+          <div class="mt-6 grid grid-cols-1 gap-3">
             <button (click)="signupGoogle()"
               class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
               Google
-            </button>
-            <button (click)="signupFacebook()"
-              class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
-              Facebook
             </button>
           </div>
         </div>
