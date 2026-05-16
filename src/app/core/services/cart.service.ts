@@ -1,8 +1,7 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { Product } from '../models/product.model';
 
-export interface CartItem {
-  product: Product;
+export interface CartItem extends Product {
   quantity: number;
 }
 
@@ -10,68 +9,65 @@ export interface CartItem {
   providedIn: 'root'
 })
 export class CartService {
-  // 1. Déclaration du Signal principal contenant l'état local du panier
-  // On l'initialise avec les données du localStorage (s'il y en a)
-  private cartItems = signal<CartItem[]>(this.loadFromStorage());
+  // Signal contenant les articles du panier
+  private cartItems = signal<CartItem[]>([]);
 
-  // 2. Création de Signals calculés (Computed)
-  // Ils se mettent à jour automatiquement si cartItems change
-  readonly items = this.cartItems.asReadonly();
-  
-  readonly totalUSDT = computed(() => {
-    return this.cartItems().reduce((total, item) => total + (item.product.priceUSDT * item.quantity), 0);
-  });
-  
-  readonly itemCount = computed(() => {
-    return this.cartItems().reduce((count, item) => count + item.quantity, 0);
-  });
+  // Signaux calculés pour utilisation réactive
+  readonly items = computed(() => this.cartItems());
+  readonly itemCount = computed(() => this.cartItems().reduce((acc, item) => acc + item.quantity, 0));
+  readonly totalUSDT = computed(() => this.cartItems().reduce((acc, item) => acc + (item.priceUSDT * item.quantity), 0));
 
   constructor() {
-    // 3. Effet de bord : À chaque fois que le signal cartItems change,
-    // on sauvegarde automatiquement le panier dans le LocalStorage
-    effect(() => {
-      localStorage.setItem('salemsaccounts_cart', JSON.stringify(this.cartItems()));
-    });
+    this.loadCart();
   }
 
-  // Ajouter un produit au panier
-  addToCart(product: Product, quantity: number = 1) {
+  addToCart(product: Product) {
     this.cartItems.update(items => {
-      // Vérifie si le produit est déjà dans le panier
-      const existingItem = items.find(i => i.product.id === product.id);
-      
+      const existingItem = items.find(item => item.id === product.id);
       if (existingItem) {
-        // Met à jour la quantité
-        return items.map(i => 
-          i.product.id === product.id 
-            ? { ...i, quantity: i.quantity + quantity } 
-            : i
+        return items.map(item => 
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      
-      // Ajoute le nouveau produit
-      return [...items, { product, quantity }];
+      return [...items, { ...product, quantity: 1 }];
     });
+    this.saveCart();
   }
 
-  // Retirer un produit complet du panier
   removeFromCart(productId: string) {
-    this.cartItems.update(items => items.filter(i => i.product.id !== productId));
+    this.cartItems.update(items => items.filter(item => item.id !== productId));
+    this.saveCart();
   }
 
-  // Vider le panier (suite à une commande validée)
+  updateQuantity(productId: string, quantity: number) {
+    if (quantity <= 0) {
+      this.removeFromCart(productId);
+      return;
+    }
+    this.cartItems.update(items =>
+      items.map(item => item.id === productId ? { ...item, quantity } : item)
+    );
+    this.saveCart();
+  }
+
   clearCart() {
     this.cartItems.set([]);
+    localStorage.removeItem('salemsaccounts_cart');
   }
 
-  // Méthode utilitaire pour lire le LocalStorage au démarrage
-  private loadFromStorage(): CartItem[] {
-    try {
-      const storedCart = localStorage.getItem('salemsaccounts_cart');
-      return storedCart ? JSON.parse(storedCart) : [];
-    } catch (e) {
-      console.error('Erreur lors de la lecture du panier', e);
-      return [];
+  // Sauvegarde dans le localStorage pour ne pas perdre le panier au rechargement
+  private saveCart() {
+    localStorage.setItem('salemsaccounts_cart', JSON.stringify(this.cartItems()));
+  }
+
+  private loadCart() {
+    const saved = localStorage.getItem('salemsaccounts_cart');
+    if (saved) {
+      try {
+        this.cartItems.set(JSON.parse(saved));
+      } catch (e) {
+        console.error('Erreur de lecture du panier', e);
+      }
     }
   }
 }

@@ -9,5 +9,5 @@ export const environment = {
     appId: "1:285875034313:web:a2cbb4b4a44906c43f5518",
     measurementId: "G-J27WG5LSV1"
   },
-  binanceWalletUSDT: "" // À remplir avec ton adresse USDT Binance
+  binanceWalletUSDT: "TNw9pxbxwf6qtvymRSnr2quaWxVCi5fwqu" // À remplir avec ton adresse USDT Binance
 };

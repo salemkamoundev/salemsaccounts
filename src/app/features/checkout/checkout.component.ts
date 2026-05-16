@@ -1,129 +1,106 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { CartService } from '../../core/services/cart.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="bg-gray-50 min-h-screen py-12">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <!-- Cas où le panier est vide -->
-        <div *ngIf="cartService.itemCount() === 0" class="text-center py-20 bg-white rounded-2xl shadow-sm border border-gray-100">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-8">Validation de la commande</h1>
+
+        <div *ngIf="cartService.itemCount() === 0" class="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
           <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
-          <h2 class="text-2xl font-bold text-gray-900 mb-2">Votre commande est vide</h2>
-          <p class="text-gray-500 mb-6">Vous n'avez pas encore sélectionné d'abonnement.</p>
-          <a routerLink="/catalog" class="inline-flex px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+          <h2 class="text-xl font-medium text-gray-900 mb-2">Votre panier est vide</h2>
+          <p class="text-gray-500 mb-6">Ajoutez des abonnements pour continuer.</p>
+          <button (click)="router.navigate(['/'])" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition-colors">
             Parcourir le catalogue
-          </a>
+          </button>
         </div>
 
-        <!-- Checkout Form & Summary -->
-        <div *ngIf="cartService.itemCount() > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-x-12 gap-y-8">
+        <div *ngIf="cartService.itemCount() > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          <!-- Colonne Gauche : Formulaire des détails -->
           <div class="lg:col-span-7">
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-              <h2 class="text-2xl font-bold text-gray-900 mb-6">Détails de l'abonnement</h2>
-              <p class="text-sm text-gray-500 mb-8">Ces informations sont nécessaires pour configurer et livrer votre abonnement électronique.</p>
-
-              <form (ngSubmit)="proceedToPayment()" class="space-y-6">
-                <!-- Email de livraison -->
-                <div>
-                  <label for="deliveryEmail" class="block text-sm font-medium text-gray-700">Email de réception du code / lien</label>
-                  <div class="mt-1">
-                    <input type="email" id="deliveryEmail" name="deliveryEmail" required [(ngModel)]="checkoutData.deliveryEmail"
-                           class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-lg py-3 px-4 border bg-gray-50" 
-                           placeholder="exemple@domaine.com">
-                  </div>
-                </div>
-
-                <!-- Type d'appareil -->
-                <div>
-                  <label for="deviceType" class="block text-sm font-medium text-gray-700">Sur quel appareil allez-vous l'utiliser ?</label>
-                  <div class="mt-1">
-                    <select id="deviceType" name="deviceType" required [(ngModel)]="checkoutData.deviceType"
-                            class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-lg py-3 px-4 border bg-gray-50">
-                      <option value="" disabled selected>Sélectionnez un appareil...</option>
-                      <option value="Smart TV (Samsung/LG)">Smart TV (Samsung / LG)</option>
-                      <option value="Android TV / Box">Android TV / Box Android</option>
-                      <option value="Boitier MAG">Boîtier MAG</option>
-                      <option value="Smartphone / Tablette">Smartphone / Tablette</option>
-                      <option value="PC / Mac">PC / Mac</option>
-                      <option value="Autre">Autre</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Adresse MAC (Optionnel) -->
-                <div *ngIf="checkoutData.deviceType === 'Smart TV (Samsung/LG)' || checkoutData.deviceType === 'Boitier MAG'">
-                  <label for="macAddress" class="block text-sm font-medium text-gray-700">Adresse MAC (Si requise par votre application)</label>
-                  <div class="mt-1">
-                    <input type="text" id="macAddress" name="macAddress" [(ngModel)]="checkoutData.macAddress"
-                           class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-lg py-3 px-4 border bg-gray-50 uppercase" 
-                           placeholder="00:1A:79:XX:XX:XX">
-                  </div>
-                  <p class="mt-2 text-xs text-gray-500">Obligatoire pour les applications comme Smart IPTV ou les boîtiers MAG.</p>
-                </div>
-
-                <!-- Notes supplémentaires -->
-                <div>
-                  <label for="notes" class="block text-sm font-medium text-gray-700">Remarque (Optionnel)</label>
-                  <div class="mt-1">
-                    <textarea id="notes" name="notes" rows="3" [(ngModel)]="checkoutData.notes"
-                              class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-lg py-3 px-4 border bg-gray-50"
-                              placeholder="Application préférée, demande spécifique..."></textarea>
-                  </div>
-                </div>
-
-                <div class="pt-6">
-                  <button type="submit" [disabled]="!checkoutData.deliveryEmail || !checkoutData.deviceType"
-                          class="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
-                    Continuer vers le paiement (USDT)
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          <!-- Colonne Droite : Résumé de la commande -->
-          <div class="lg:col-span-5">
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 sticky top-8">
-              <h3 class="text-xl font-bold text-gray-900 mb-6">Résumé de la commande</h3>
-              
-              <ul role="list" class="divide-y divide-gray-200 mb-6">
-                <li *ngFor="let item of cartService.items()" class="flex py-4">
-                  <div class="flex-1 flex flex-col">
-                    <div>
-                      <div class="flex justify-between text-base font-medium text-gray-900">
-                        <h4 class="line-clamp-2">{{ item.product.title }}</h4>
-                        <p class="ml-4 whitespace-nowrap">{{ item.product.priceUSDT }} USDT</p>
-                      </div>
-                      <p class="mt-1 text-sm text-gray-500">{{ item.product.category }}</p>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <h2 class="text-lg font-bold text-gray-900">Articles sélectionnés</h2>
+                <button (click)="cartService.clearCart()" class="text-sm text-red-500 hover:text-red-700">Vider le panier</button>
+              </div>
+              <ul class="divide-y divide-gray-100">
+                <li *ngFor="let item of cartService.items()" class="p-6 flex flex-col sm:flex-row sm:items-center">
+                  <div class="flex-shrink-0 w-16 h-16 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 mb-4 sm:mb-0">
+                    <img *ngIf="item.imageUrl" [src]="item.imageUrl" class="w-full h-full object-cover">
+                    <div *ngIf="!item.imageUrl" class="w-full h-full flex items-center justify-center text-gray-400">
+                      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     </div>
-                    <div class="flex-1 flex items-end justify-between text-sm">
-                      <p class="text-gray-500">Qté {{ item.quantity }}</p>
-                      <button type="button" (click)="cartService.removeFromCart(item.product.id!)" class="font-medium text-red-600 hover:text-red-500">
-                        Retirer
-                      </button>
+                  </div>
+                  <div class="sm:ml-4 flex-1">
+                    <h3 class="text-lg font-bold text-gray-900">{{ item.name }}</h3>
+                    <p class="text-sm text-gray-500 line-clamp-1">{{ item.description }}</p>
+                  </div>
+                  <div class="sm:ml-4 flex flex-row sm:flex-col justify-between items-center sm:items-end mt-4 sm:mt-0 w-full sm:w-auto">
+                    <span class="text-lg font-extrabold text-blue-600 mb-0 sm:mb-2">{{ item.priceUSDT * item.quantity }} USDT</span>
+                    <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                      <button (click)="updateQuantity(item.id!, item.quantity - 1)" class="px-3 py-1 bg-gray-50 text-gray-600 hover:bg-gray-100 font-medium">-</button>
+                      <span class="px-3 py-1 text-sm font-bold border-x border-gray-200 min-w-[2.5rem] text-center">{{ item.quantity }}</span>
+                      <button (click)="updateQuantity(item.id!, item.quantity + 1)" class="px-3 py-1 bg-gray-50 text-gray-600 hover:bg-gray-100 font-medium">+</button>
                     </div>
                   </div>
                 </li>
               </ul>
+            </div>
+          </div>
 
-              <div class="border-t border-gray-200 pt-6">
-                <div class="flex justify-between text-lg font-bold text-gray-900 mb-2">
-                  <p>Total à payer</p>
-                  <p class="text-green-600">{{ cartService.totalUSDT() }} USDT</p>
+          <div class="lg:col-span-5">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-6">
+              <h2 class="text-lg font-bold text-gray-900 mb-6 border-b border-gray-100 pb-4">Détails de réception</h2>
+              
+              <form (ngSubmit)="proceedToPayment()" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Email de réception <span class="text-red-500">*</span></label>
+                  <input type="email" [(ngModel)]="checkoutData.email" name="email" required
+                         class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                         placeholder="Pour recevoir vos accès">
                 </div>
-                <p class="text-sm text-gray-500 mb-6">Le paiement se fera manuellement via Binance Pay (TRC20 ou BEP20) à l'étape suivante.</p>
-              </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Appareil cible</label>
+                  <select [(ngModel)]="checkoutData.device" name="device"
+                          class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white">
+                    <option value="smart_tv">Smart TV (Samsung/LG)</option>
+                    <option value="android_box">Box Android / Firestick</option>
+                    <option value="smartphone">Smartphone / Tablette</option>
+                    <option value="pc">PC / Mac</option>
+                    <option value="other">Autre</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Application souhaitée (Optionnel)</label>
+                  <input type="text" [(ngModel)]="checkoutData.appPreference" name="app" placeholder="Ex: IPTV Smarters, Flix IPTV..."
+                         class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                </div>
+
+                <div class="pt-6 mt-6 border-t border-gray-100">
+                  <div class="flex justify-between items-center mb-6">
+                    <span class="text-lg font-medium text-gray-700">Total à payer</span>
+                    <span class="text-3xl font-black text-green-500">{{ cartService.totalUSDT() }} USDT</span>
+                  </div>
+
+                  <button type="submit" [disabled]="!checkoutData.email"
+                          class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-200 flex justify-center items-center">
+                    Procéder au paiement (Binance)
+                    <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
 
@@ -134,18 +111,33 @@ import { CartService } from '../../core/services/cart.service';
 })
 export class CheckoutComponent {
   cartService = inject(CartService);
-  private router = inject(Router);
+  router = inject(Router);
+  private authService = inject(AuthService);
 
-  // Modèle pour le formulaire
   checkoutData = {
-    deliveryEmail: '',
-    deviceType: '',
-    macAddress: '',
-    notes: ''
+    email: '',
+    device: 'smart_tv',
+    appPreference: ''
   };
 
+  constructor() {
+    this.authService.user$.subscribe(user => {
+      if (user && user.email) {
+        this.checkoutData.email = user.email;
+      }
+    });
+  }
+
+  updateQuantity(productId: string, quantity: number) {
+    this.cartService.updateQuantity(productId, quantity);
+  }
+
   proceedToPayment() {
-    // On passe les informations saisies via le state du routeur pour l'étape de paiement
-    this.router.navigate(['/payment'], { state: { checkoutData: this.checkoutData } });
+    if (!this.checkoutData.email) return;
+    
+    // Transmission des infos à la page de paiement
+    this.router.navigate(['/checkout/payment'], {
+      state: { checkoutData: this.checkoutData }
+    });
   }
 }

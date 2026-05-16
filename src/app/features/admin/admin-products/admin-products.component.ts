@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../../core/services/product.service';
@@ -11,10 +11,10 @@ import { Category } from '../../../core/models/category.model';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="p-6">
+    <div class="p-6 relative">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-900">Gestion des Abonnements</h2>
-        <button (click)="openModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        <button (click)="openModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 z-10">
           Nouvel Abonnement
         </button>
       </div>
@@ -31,6 +31,15 @@ import { Category } from '../../../core/models/category.model';
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
+            <tr *ngIf="isLoading">
+              <td colspan="5" class="px-6 py-8 text-center">
+                <div class="flex justify-center items-center text-blue-600">
+                  <svg class="animate-spin h-8 w-8 mr-3" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  <span class="text-gray-500 font-medium">Chargement des abonnements...</span>
+                </div>
+              </td>
+            </tr>
+
             <tr *ngFor="let prod of products">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
@@ -53,19 +62,22 @@ import { Category } from '../../../core/models/category.model';
                 </span>
               </td>
               <td class="px-6 py-4 text-right">
-                <button (click)="editProduct(prod)" class="text-blue-600 hover:text-blue-900 mr-3 font-medium">Modifier</button>
-                <button (click)="deleteProduct(prod.id!)" class="text-red-600 hover:text-red-900 font-medium">Supprimer</button>
+                <button (click)="editProduct(prod)" [disabled]="deletingId === prod.id" class="text-blue-600 hover:text-blue-900 mr-3 font-medium disabled:opacity-50">Modifier</button>
+                <button (click)="deleteProduct(prod.id!)" [disabled]="deletingId === prod.id" class="text-red-600 hover:text-red-900 font-medium disabled:opacity-50">
+                  <span *ngIf="deletingId === prod.id" class="inline-block animate-spin mr-1">⏳</span>
+                  {{ deletingId === prod.id ? 'Suppression...' : 'Supprimer' }}
+                </button>
               </td>
             </tr>
-            <tr *ngIf="products.length === 0">
+            <tr *ngIf="!isLoading && products.length === 0">
               <td colspan="5" class="px-6 py-4 text-center text-gray-500">Aucun produit trouvé.</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div *ngIf="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-        <div class="bg-white rounded-xl p-6 w-full max-w-2xl my-8">
+      <div *ngIf="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] overflow-y-auto">
+        <div class="bg-white rounded-xl p-6 w-full max-w-2xl my-8 shadow-2xl relative">
           <h3 class="text-xl font-bold mb-4 text-gray-900">{{ editingId ? 'Modifier' : 'Ajouter' }} un abonnement</h3>
           <form (ngSubmit)="saveProduct()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             
@@ -103,8 +115,11 @@ import { Category } from '../../../core/models/category.model';
             </div>
 
             <div class="md:col-span-2 flex justify-end gap-3 mt-4">
-              <button type="button" (click)="showModal = false" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">Annuler</button>
-              <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Enregistrer</button>
+              <button type="button" (click)="showModal = false" [disabled]="isSaving" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium disabled:opacity-50">Annuler</button>
+              <button type="submit" [disabled]="isSaving" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center disabled:opacity-50">
+                <svg *ngIf="isSaving" class="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+              </button>
             </div>
           </form>
         </div>
@@ -115,6 +130,7 @@ import { Category } from '../../../core/models/category.model';
 export class AdminProductsComponent implements OnInit {
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
+  private cdr = inject(ChangeDetectorRef);
 
   products: Product[] = [];
   categories: Category[] = [];
@@ -123,9 +139,38 @@ export class AdminProductsComponent implements OnInit {
   editingId: string | null = null;
   currentProduct: Partial<Product> = {};
 
+  isLoading = true;
+  isSaving = false;
+  deletingId: string | null = null;
+
   ngOnInit() {
-    this.productService.getProducts().subscribe(res => this.products = res);
-    this.categoryService.getCategories().subscribe(res => this.categories = res);
+    this.isLoading = true;
+
+    const fallback = setTimeout(() => {
+      if (this.isLoading) {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    }, 5000);
+
+    this.categoryService.getCategories().subscribe(res => {
+      this.categories = res || [];
+      this.cdr.detectChanges();
+    });
+
+    this.productService.getProducts().subscribe({
+      next: (res) => {
+        clearTimeout(fallback);
+        this.products = res || [];
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        clearTimeout(fallback);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   getCategoryName(categoryId: string | undefined): string {
@@ -145,15 +190,20 @@ export class AdminProductsComponent implements OnInit {
       imageUrl: '' 
     };
     this.showModal = true;
+    this.cdr.detectChanges(); // <-- Indispensable sur mobile pour forcer le rafraîchissement
   }
 
   editProduct(prod: Product) {
-    this.editingId = prod.id!;
-    this.currentProduct = { ...prod };
+    this.editingId = prod.id || null;
+    const { id, ...dataToEdit } = prod as any;
+    this.currentProduct = { ...dataToEdit };
     this.showModal = true;
+    this.cdr.detectChanges(); // <-- Indispensable ici aussi
   }
 
   async saveProduct() {
+    this.isSaving = true;
+    this.cdr.detectChanges();
     try {
       if (this.editingId) {
         await this.productService.updateProduct(this.editingId, this.currentProduct);
@@ -164,15 +214,24 @@ export class AdminProductsComponent implements OnInit {
     } catch (error) {
       console.error('Erreur de sauvegarde produit', error);
       alert('Une erreur est survenue lors de la sauvegarde.');
+    } finally {
+      this.isSaving = false;
+      this.cdr.detectChanges();
     }
   }
 
   async deleteProduct(id: string) {
+    if (!id) return;
     if (confirm('Voulez-vous vraiment supprimer cet abonnement ?')) {
+      this.deletingId = id;
+      this.cdr.detectChanges();
       try {
         await this.productService.deleteProduct(id);
       } catch (error) {
         console.error('Erreur suppression produit', error);
+      } finally {
+        this.deletingId = null;
+        this.cdr.detectChanges();
       }
     }
   }
