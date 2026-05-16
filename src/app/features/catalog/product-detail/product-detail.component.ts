@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductService } from '../../../core/services/product.service';
+import { CartService } from '../../../core/services/cart.service';
 import { Observable, switchMap } from 'rxjs';
 import { Product } from '../../../core/models/product.model';
 
@@ -13,7 +14,6 @@ import { Product } from '../../../core/models/product.model';
     <div class="bg-gray-50 min-h-screen py-12">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <!-- Bouton Retour -->
         <div class="mb-8">
           <a routerLink="/catalog" class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
             <svg class="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -27,7 +27,6 @@ import { Product } from '../../../core/models/product.model';
           <div *ngIf="product; else notFoundTpl" class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
             <div class="lg:flex">
               
-              <!-- Image Section -->
               <div class="lg:w-1/2 bg-gray-100 relative">
                 <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.title" class="w-full h-full object-cover min-h-[300px] lg:min-h-[500px]">
                 <div *ngIf="!product.imageUrl" class="w-full h-full min-h-[300px] lg:min-h-[500px] flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
@@ -37,7 +36,6 @@ import { Product } from '../../../core/models/product.model';
                 </div>
               </div>
 
-              <!-- Content Section -->
               <div class="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
                 <div class="mb-2">
                   <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
@@ -59,7 +57,6 @@ import { Product } from '../../../core/models/product.model';
                     </div>
                   </div>
 
-                  <!-- Bouton de commande -->
                   <button (click)="orderNow(product)" 
                           class="w-full flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     <svg class="mr-3 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,7 +77,6 @@ import { Product } from '../../../core/models/product.model';
           </div>
         </ng-container>
 
-        <!-- Templates alternatifs -->
         <ng-template #notFoundTpl>
           <div class="text-center py-20 bg-white shadow rounded-2xl border border-gray-100">
             <h3 class="text-xl font-medium text-gray-900 mb-2">Produit introuvable</h3>
@@ -103,6 +99,7 @@ export class ProductDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private productService = inject(ProductService);
+  private cartService = inject(CartService); // <-- 1. Injection du CartService
 
   product$!: Observable<Product>;
 
@@ -116,7 +113,10 @@ export class ProductDetailComponent implements OnInit {
   }
 
   orderNow(product: Product) {
-    // Redirection vers le checkout avec l'ID de l'article en paramètre
-    this.router.navigate(['/checkout'], { queryParams: { productId: product.id } });
+    // 2. On ajoute l'article au panier en mémoire locale
+    this.cartService.addToCart(product);
+    
+    // 3. On redirige vers la page de validation (le panier n'est plus vide)
+    this.router.navigate(['/checkout']);
   }
 }

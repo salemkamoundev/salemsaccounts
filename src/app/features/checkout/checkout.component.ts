@@ -135,8 +135,8 @@ export class CheckoutComponent {
   proceedToPayment() {
     if (!this.checkoutData.email) return;
     
-    // Transmission des infos à la page de paiement
-    this.router.navigate(['/checkout/payment'], {
+    // CORRECTION : Navigation vers la route root '/payment' (définie dans app.routes.ts)
+    this.router.navigate(['/payment'], {
       state: { checkoutData: this.checkoutData }
     });
   }
